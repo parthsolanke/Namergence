@@ -1,1 +1,6 @@
-
+streamlit==0.91.0
+requests==2.26.0
+torch==1.10.0
+numpy==1.21.0
+matplotlib==3.4.2
+fastapi==0.68.0
