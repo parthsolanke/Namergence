@@ -43,8 +43,9 @@ def predict(input_name: InputName):
         for i in range(name_tensor.size()[0]):
             output, hidden = loaded_model(name_tensor[i], hidden)
         label = category_from_output(output)
-        confidence = torch.exp(output).max().item()
-    return {"label": label, "confidence": confidence}
+        confidence = torch.exp(output).tolist()
+
+    return {"name": name, "label": label, "confidences": confidence, "categories": loaded_labels}
 
 if __name__ == "__main__":
     import uvicorn
