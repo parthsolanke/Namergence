@@ -56,6 +56,22 @@ console.log(await client.predict("Alice"));
 
 Non-2xx responses throw a `NamergenceError` with `status` and `body`.
 
+### Go client
+
+A Go client lives in `go-client/` (see `go-client/README.md`). It calls `POST /predict` and returns the server response unchanged.
+
+```go
+result, err := namergence.Predict("Alice", &namergence.RequestOptions{
+	BaseURL: "http://127.0.0.1:8000",
+})
+if err != nil {
+	log.Fatal(err)
+}
+fmt.Println(result.Label, result.Confidences)
+```
+
+Non-2xx responses return a `*NamergenceError` with `Status` and `Body`.
+
 ## Additional Information
 
 - The model was trained on a dataset of names and their corresponding languages.
