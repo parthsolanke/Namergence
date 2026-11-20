@@ -7,6 +7,7 @@ This is a simple web application that uses a PyTorch model for classifying names
 
 - Python 3.8 or later
 - Dependencies listed in `requirements.txt`
+- Go 1.20 or later for the Go client in `namergence-go/`
 
 ### Installation
 1. Clone the repository:
@@ -39,6 +40,38 @@ This is a simple web application that uses a PyTorch model for classifying names
    ```
 
    Visit `http://localhost:8501` in your web browser to use the app.
+
+## Go client
+
+A Go client for the `/predict` endpoint lives in `namergence-go/` (module `namergence`, standard library only). It works with the FastAPI server started above.
+
+```go
+package main
+
+import (
+	"context"
+	"fmt"
+	"log"
+
+	"namergence"
+)
+
+func main() {
+	client := namergence.NewClient("http://127.0.0.1:8000")
+
+	prediction, err := client.Predict(context.Background(), "Sofia")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Println(prediction.Label)
+	for _, score := range prediction.Scores() {
+		fmt.Printf("%s: %.2f%%\n", score.Category, score.Confidence*100)
+	}
+}
+```
+
+`Prediction` mirrors the API response (`name`, `label`, `confidences` and `categories`), and `Scores` returns the categories sorted from highest to lowest confidence. Run the client tests with `cd namergence-go && go test ./...`.
 
 ## Additional Information
 
