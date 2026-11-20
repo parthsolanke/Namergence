@@ -73,6 +73,25 @@ func main() {
 
 `Prediction` mirrors the API response (`name`, `label`, `confidences` and `categories`), and `Scores` returns the categories sorted from highest to lowest confidence. Run the client tests with `cd namergence-go && go test ./...`.
 
+## Ping/pong connectivity
+
+Namergence and ScalarFlow can confirm they are reachable from each other over HTTP. The Namergence FastAPI server answers `GET /ping` with:
+
+```json
+{"message": "pong", "service": "namergence"}
+```
+
+The Go client in `namergence-go/` can call a peer's `/pong` endpoint (ScalarFlow serves one on `http://127.0.0.1:8001`):
+
+```go
+client := namergence.NewPongClient("http://127.0.0.1:8001")
+pong, err := client.Pong(context.Background())
+if err != nil {
+	log.Fatal(err)
+}
+fmt.Println(pong.Service, pong.Message)
+```
+
 ## Additional Information
 
 - The model was trained on a dataset of names and their corresponding languages.

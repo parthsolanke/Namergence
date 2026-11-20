@@ -27,11 +27,21 @@ loaded_labels = np.load(f'{save_path}/labels.npy', allow_pickle=True).tolist()
 
 class InputName(BaseModel):
     name: str
+
+
+class PingResponse(BaseModel):
+    message: str
+    service: str
     
 
 def category_from_output(output):
     catagory_idx = torch.argmax(output).item()
     return loaded_labels[catagory_idx]
+
+
+@app.get("/ping", response_model=PingResponse)
+def ping():
+    return PingResponse(message="pong", service="namergence")
 
 
 @app.post("/predict")
