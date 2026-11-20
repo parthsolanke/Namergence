@@ -75,13 +75,29 @@ func main() {
 
 ## Ping/pong connectivity
 
-Namergence and ScalarFlow can confirm they are reachable from each other over HTTP. The Namergence FastAPI server answers `GET /ping` with:
+Namergence and ScalarFlow can confirm they are reachable from each other over HTTP. The Namergence FastAPI server listens on `http://127.0.0.1:8000` and answers `GET /ping` with:
 
 ```json
 {"message": "pong", "service": "namergence"}
 ```
 
-The Go client in `namergence-go/` can call a peer's `/pong` endpoint (ScalarFlow serves one on `http://127.0.0.1:8001`):
+ScalarFlow serves `GET /pong` on `http://127.0.0.1:8001`, which answers with:
+
+```json
+{"message": "pong", "service": "scalarflow"}
+```
+
+Start both sides (from the ScalarFlow repository) to try the round trip:
+
+```bash
+# Terminal 1: Namergence API on 127.0.0.1:8000
+python src/server.py
+
+# Terminal 2: ScalarFlow pong server on 127.0.0.1:8001
+cd scalarflow-go && go run ./cmd/pong
+```
+
+The Go client in `namergence-go/` can then call the peer's `/pong` endpoint with `NewPongClient`/`Pong`:
 
 ```go
 client := namergence.NewPongClient("http://127.0.0.1:8001")
@@ -91,6 +107,8 @@ if err != nil {
 }
 fmt.Println(pong.Service, pong.Message)
 ```
+
+An empty base URL uses the default `http://127.0.0.1:8001`. A Go 1.20 or later toolchain is required; run the client tests with `cd namergence-go && go test ./...`.
 
 ## Additional Information
 
