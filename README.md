@@ -40,6 +40,26 @@ This is a simple web application that uses a PyTorch model for classifying names
 
    Visit `http://localhost:8501` in your web browser to use the app.
 
+### JavaScript client
+
+A dependency-free JS client for the `/predict` API lives in [`js-client/`](js-client/).
+It works in modern browsers and Node.js 18+.
+
+```js
+import { NamergenceClient } from "./js-client/index.js";
+
+const client = new NamergenceClient({ baseUrl: "http://127.0.0.1:8000" });
+const result = await client.predict("Charlotte");
+
+console.log(result.label);
+for (const { category, confidence } of result.predictions) {
+  console.log(`${category}: ${(confidence * 100).toFixed(2)}%`);
+}
+```
+
+The backend already enables CORS, so the client can be called directly from a
+browser page. See [`js-client/README.md`](js-client/README.md) for the full API.
+
 ## Additional Information
 
 - The model was trained on a dataset of names and their corresponding languages.

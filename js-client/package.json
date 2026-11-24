@@ -1,0 +1,19 @@
+{
+  "name": "namergence-client",
+  "version": "1.0.0",
+  "description": "JavaScript client for the Namergence /predict API",
+  "type": "module",
+  "main": "index.js",
+  "types": "index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./index.d.ts",
+      "default": "./index.js"
+    }
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": ["namergence", "name-origin", "client"],
+  "license": "MIT"
+}
