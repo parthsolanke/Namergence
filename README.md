@@ -23,6 +23,7 @@ src/train.py         # Training and evaluation script
 src/utils/loader.py  # Dataset loading, normalisation and tensor helpers
 src/model/           # Trained weights: model.pth and labels.npy
 src/notebook/        # Exploratory notebook
+client/              # JavaScript client for the /predict API
 requirements.txt
 ```
 
@@ -89,6 +90,30 @@ Response:
 ```
 
 `confidences` is a list containing one list of per-category log-probabilities, aligned with `categories`. The frontend exponentiates these values to display percentages.
+
+## JavaScript client
+
+`client/namergence-client.js` is a dependency-free ES module that calls `POST /predict` and returns the categories ranked by probability. It works in any modern browser and in Node.js 18+ (which provides `fetch`).
+
+```js
+import { NamergenceClient } from "./client/namergence-client.js";
+
+const client = new NamergenceClient({ baseUrl: "http://127.0.0.1:8000" });
+
+const result = await client.predict("Ada");
+console.log(result.label);
+for (const prediction of result.predictions) {
+  console.log(prediction.category, prediction.percent.toFixed(2) + "%");
+}
+```
+
+`baseUrl` defaults to `http://127.0.0.1:8000`, and `fetchImpl` can be supplied for custom HTTP implementations. A one-off helper is also available:
+
+```js
+import { predictName } from "./client/namergence-client.js";
+
+const result = await predictName("Ada");
+```
 
 ## Training
 
