@@ -1,4 +1,4 @@
-# Namergence
+# Namergence — Name Origin Classifier
 Name checker to find origin of names 📛
 
 This is a simple web application that uses a PyTorch model for classifying names into different categories (languages). It consists of a FastAPI backend serving predictions, and a Streamlit frontend for user interaction.
