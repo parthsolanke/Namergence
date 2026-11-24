@@ -1,0 +1,14 @@
+{
+  "name": "namergence-client",
+  "version": "0.1.0",
+  "description": "JavaScript client for the Namergence /predict API",
+  "type": "module",
+  "main": "namergence-client.js",
+  "exports": {
+    ".": "./namergence-client.js"
+  },
+  "files": [
+    "namergence-client.js"
+  ],
+  "license": "MIT"
+}
