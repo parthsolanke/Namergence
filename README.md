@@ -1,38 +1,16 @@
 # Namergence
 
-Name checker to find the likely origin (language) of a name.
+Name checker to find the origin of names 📛
 
-Namergence is a small web application built around a character-level PyTorch RNN. A FastAPI backend loads the trained model and serves predictions, and a Streamlit frontend provides a simple interface for entering a name and viewing ranked predictions.
+Namergence is a small web application that classifies a name into a language/origin category using a character-level PyTorch RNN. It is made of two parts:
 
-## How it works
-
-- Names are normalised to ASCII and encoded one character at a time as one-hot vectors over the allowed alphabet (letters plus space, `.`, `,`, `;`, `'`).
-- A recurrent layer processes the character sequence and produces a score for each supported language.
-- The model output is passed through `LogSoftmax`, so the served values are log-probabilities that the frontend converts to percentages.
-
-Supported origins: Arabic, Chinese, Czech, Dutch, English, French, German, Greek, Indian, Irish, Italian, Japanese, Korean, Polish, Portuguese, Russian, Scottish, Spanish, Vietnamese.
-
-## Project structure
-
-```
-data/names/          # One .txt file of names per language
-src/app.py           # Streamlit frontend
-src/server.py        # FastAPI backend exposing POST /predict
-src/model.py         # RNN definition (nn.Module)
-src/train.py         # Training and evaluation script
-src/utils/loader.py  # Dataset loading, normalisation and tensor helpers
-src/model/           # Trained weights: model.pth and labels.npy
-src/notebook/        # Exploratory notebook
-client/              # JavaScript client for the /predict API
-requirements.txt
-```
+- **Backend** — a FastAPI server that loads the trained model and serves predictions over HTTP.
+- **Frontend** — a Streamlit app where a user types a name and sees the ranked category probabilities.
 
 ## Prerequisites
 
 - Python 3.8 or later
-- The dependencies listed in `requirements.txt`
-
-The pinned versions target Python 3.8. On newer Python releases you may need to relax the pins (for example for `torch` and `numpy`) so that prebuilt wheels are available.
+- Dependencies listed in `requirements.txt`
 
 ## Installation
 
@@ -49,79 +27,77 @@ The pinned versions target Python 3.8. On newer Python releases you may need to 
    pip install -r requirements.txt
    ```
 
+3. Make sure a trained model is available. The server expects the following files inside `model/` at the project root:
+
+   - `model/model.pth` — the saved RNN weights
+   - `model/labels.npy` — the ordered list of category labels
+
+   You can produce them by running the training script (see below).
+
 ## Usage
 
-The backend resolves its weights from `./model` relative to the working directory, and imports `model` and `utils` as sibling modules. Start it from the `src` directory:
+1. Start the FastAPI backend:
 
-```bash
-cd src
-python server.py
-```
+   ```bash
+   python src/server.py
+   ```
 
-This starts the FastAPI server on `http://127.0.0.1:8000`.
+   The server runs on `http://127.0.0.1:8000`.
 
-In a new terminal, launch the Streamlit frontend from the repository root:
+2. In a new terminal, start the Streamlit app:
 
-```bash
-streamlit run src/app.py
-```
+   ```bash
+   streamlit run src/app.py
+   ```
 
-Open `http://localhost:8501`, enter a name and select **Predict** to see the predictions ranked by confidence. The frontend calls the backend at `http://127.0.0.1:8000/predict`, so the server must be running.
+   Visit `http://localhost:8501` in your browser, enter a name and click **Predict**.
 
 ## API
 
-### `POST /predict`
+`POST /predict`
 
 Request body:
 
 ```json
-{ "name": "Ada" }
+{ "name": "alice" }
 ```
 
 Response:
 
 ```json
 {
-  "name": "Ada",
-  "label": "English",
-  "confidences": [[-2.31, -5.02, "..."]],
-  "categories": ["Arabic", "Chinese", "..."]
+  "name": "alice",
+  "label": "<top category>",
+  "confidences": [[...]],
+  "categories": ["..."]
 }
 ```
 
-`confidences` is a list containing one list of per-category log-probabilities, aligned with `categories`. The frontend exponentiates these values to display percentages.
+`confidences` is the probability distribution over `categories` (aligned by index); the frontend sorts them highest first.
 
-## JavaScript client
+## Training the model
 
-`client/namergence-client.js` is a dependency-free ES module that calls `POST /predict` and returns the categories ranked by probability. It works in any modern browser and in Node.js 18+ (which provides `fetch`).
+The model is trained on the name lists stored in `data/names/`, one file per language/category.
 
-```js
-import { NamergenceClient } from "./client/namergence-client.js";
-
-const client = new NamergenceClient({ baseUrl: "http://127.0.0.1:8000" });
-
-const result = await client.predict("Ada");
-console.log(result.label);
-for (const prediction of result.predictions) {
-  console.log(prediction.category, prediction.percent.toFixed(2) + "%");
-}
+```bash
+python src/train.py
 ```
 
-`baseUrl` defaults to `http://127.0.0.1:8000`, and `fetchImpl` can be supplied for custom HTTP implementations. A one-off helper is also available:
+The script trains the RNN with negative log-likelihood loss, periodically prints accuracy, plots the loss curve, and reports overall accuracy on the training data. Save the resulting state dict and label list to `model/model.pth` and `model/labels.npy` so the server can load them.
 
-```js
-import { predictName } from "./client/namergence-client.js";
+## Project structure
 
-const result = await predictName("Ada");
+```
+data/names/        # one text file of names per category
+src/app.py         # Streamlit frontend
+src/server.py      # FastAPI backend exposing POST /predict
+src/train.py       # training script
+src/model.py       # RNN definition
+src/utils/loader.py# data loading and preprocessing helpers
+requirements.txt
 ```
 
-## Training
+## Notes
 
-`src/train.py` trains the RNN from scratch and then reports accuracy over the dataset. The dataset is loaded by `src/utils/loader.py`, which resolves names from `../../data/names/*.txt` relative to the working directory, so run the trainer from a location where that path points at `data/names/` (or adjust the path in the loader).
-
-Training uses SGD with a learning rate of `0.001` over a long loop, plots the loss curve, and finishes with an accuracy evaluation. The script does not write the trained weights; you will need to save `model.pth` and `labels.npy` to `src/model/` yourself if you want the server to use a newly trained model.
-
-## Additional information
-
-- The model was trained on the name files in `data/names/`, one file per language.
-- Feel free to customise the model, dataset or frontend for your own use case.
+- Input names are normalized to ASCII and lowercased before being converted to tensors; characters outside `a-z` (plus a few separators) are dropped.
+- Feel free to retrain or extend the model with additional categories for your own use case.
