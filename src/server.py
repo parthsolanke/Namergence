@@ -34,6 +34,16 @@ def category_from_output(output):
     return loaded_labels[catagory_idx]
 
 
+@app.get("/health")
+def health():
+    return {"status": "ok"}
+
+
+@app.get("/ping")
+def ping():
+    return {"status": "ok"}
+
+
 @app.post("/predict")
 def predict(input_name: InputName):
     name = input_name.name
