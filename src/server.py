@@ -39,6 +39,11 @@ def health():
     return {"status": "ok"}
 
 
+@app.get("/ping")
+def ping():
+    return {"status": "ok"}
+
+
 @app.post("/predict")
 def predict(input_name: InputName):
     name = input_name.name

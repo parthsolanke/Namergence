@@ -20,6 +20,10 @@ def server_module(monkeypatch):
     sys.modules.pop("server", None)
 
 
+def test_ping_returns_ok_status(server_module):
+    assert server_module.ping() == {"status": "ok"}
+
+
 def test_category_from_output_maps_index_to_label(server_module):
     output = torch.full((1, len(server_module.loaded_labels)), -10.0)
     output[0][2] = 0.0
