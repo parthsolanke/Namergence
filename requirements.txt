@@ -4,3 +4,4 @@ torch==1.10.0
 numpy==1.21.0
 matplotlib==3.4.2
 fastapi==0.68.0
+pytest==8.3.4
